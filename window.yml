@@ -1,0 +1,35 @@
+trigger:
+- main  # Replace 'main' with the branch you want to trigger the pipeline from
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  targetPath: "C:\\Deployment"  # Target directory on the Windows VM
+
+stages:
+- stage: Deploy
+  displayName: "Deploy to Windows VM"
+  jobs:
+  - deployment: DeployApp
+    displayName: "Deploy Application to Windows VM"
+    environment: "WindowsDeploymentGroup"  # Replace with your Deployment Group name
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Step 1: Fetch Code from Azure Repos
+          - checkout: self
+            displayName: "Fetch Code from Azure Repos"
+
+          # Step 2: Deploy Code to the VM
+          - powershell: |
+              echo "Deploying code to Windows VM..."
+              New-Item -ItemType Directory -Path $env:targetPath -Force
+              Copy-Item -Path "$(System.DefaultWorkingDirectory)\*" -Destination $env:targetPath -Recurse -Force
+              cd $env:targetPath
+              if (Test-Path requirements.txt) {
+                pip install -r requirements.txt
+              }
+              Start-Process -FilePath "python" -ArgumentList "app.py" -NoNewWindow
+            displayName: "Deploy Code and Start Application"
