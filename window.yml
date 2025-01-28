@@ -1,35 +1,37 @@
 trigger:
-- main  # Replace 'main' with the branch you want to trigger the pipeline from
+- main  # Change 'main' to the branch that triggers the pipeline
 
 pool:
-  vmImage: windows-latest
+  name: Default  # Replace 'Default' with your Agent Pool name
 
 variables:
-  targetPath: "C:\\Deployment"  # Target directory on the Windows VM
+  targetPath: "C:\\Deployment"  # Directory on the Windows VM for deployment
 
 stages:
 - stage: Deploy
   displayName: "Deploy to Windows VM"
   jobs:
-  - deployment: DeployApp
+  - job: DeployJob
     displayName: "Deploy Application to Windows VM"
-    environment: "WindowsDeploymentGroup"  # Replace with your Deployment Group name
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          # Step 1: Fetch Code from Azure Repos
-          - checkout: self
-            displayName: "Fetch Code from Azure Repos"
+    steps:
+    # Step 1: Fetch code from Azure Repos
+    - checkout: self
+      displayName: "Fetch Code from Azure Repos"
 
-          # Step 2: Deploy Code to the VM
-          - powershell: |
-              echo "Deploying code to Windows VM..."
-              New-Item -ItemType Directory -Path $env:targetPath -Force
-              Copy-Item -Path "$(System.DefaultWorkingDirectory)\*" -Destination $env:targetPath -Recurse -Force
-              cd $env:targetPath
-              if (Test-Path requirements.txt) {
-                pip install -r requirements.txt
-              }
-              Start-Process -FilePath "python" -ArgumentList "app.py" -NoNewWindow
-            displayName: "Deploy Code and Start Application"
+    # Step 2: Copy code to the target path on the VM
+    - powershell: |
+        echo "Starting Deployment to Windows VM..."
+        if (!(Test-Path -Path $env:targetPath)) {
+          New-Item -ItemType Directory -Path $env:targetPath
+        }
+        Copy-Item -Path "$(System.DefaultWorkingDirectory)\*" -Destination $env:targetPath -Recurse -Force
+      displayName: "Copy Code to Target Directory"
+
+    # Step 3: Start the application (if applicable)
+    - powershell: |
+        echo "Starting Application on Windows VM..."
+        cd $env:targetPath
+        if (Test-Path app.py) {
+          Start-Process -FilePath "python" -ArgumentList "app.py" -NoNewWindow
+        }
+      displayName: "Start Application"
