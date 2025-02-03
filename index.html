@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vulnerable Flask App</title>
+</head>
+<body>
+    <h1>Welcome to the Vulnerable Flask App</h1>
+
+    <!-- Login Form (SQL Injection) -->
+    <h2>Login</h2>
+    <form action="/login" method="post">
+        Username: <input type="text" name="username"><br>
+        Password: <input type="password" name="password"><br>
+        <input type="submit" value="Login">
+    </form>
+
+    <!-- Search Form (SQL Injection) -->
+    <h2>Search Users</h2>
+    <form action="/search" method="get">
+        Search: <input type="text" name="q">
+        <input type="submit" value="Search">
+    </form>
+
+    <!-- XSS Submission -->
+    <h2>Post a Comment</h2>
+    <form action="/submit" method="post">
+        <textarea name="content"></textarea>
+        <input type="submit" value="Submit">
+    </form>
+
+    <!-- File Upload -->
+    <h2>Upload a File</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+
+    <a href="/posts">View Posts</a>
+</body>
+</html>
